@@ -12,13 +12,30 @@ const paymentRoutes = require('./routes/paymentRoutes');
 
 const app = express();
 
-// Middleware
-// तुमच्या Render Environment Variables मध्ये FRONTEND_URL सेट केल्याची खात्री करा.
-app.use(cors({ origin: process.env.FRONTEND_URL }));
+// --- CORS Configuration ---
+// यादीमध्ये आपण लोकल आणि लाईव्ह, दोन्ही URL टाकल्या आहेत.
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://time-left-02.netlify.app'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  }
+}));
+// --- End of CORS Configuration ---
+
+
 app.use(express.json());
 
 // Connect to MongoDB
-// useNewUrlParser आणि useUnifiedTopology हे पर्याय काढले आहेत कारण ते आता आवश्यक नाहीत.
 mongoose.connect(process.env.MONGODB_URI)
 .then(() => console.log('MongoDB connected'))
 .catch(err => console.error('MongoDB connection error:', err));
